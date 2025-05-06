@@ -1,5 +1,5 @@
 // Variables globales
-let currentPokemonId = 25; // Inicialmente Pikachu
+let currentPokemonId = 1; // Inicialmente Pikachu
 let statsChart = null;
 let filteredPokemon = [];
 let isFiltering = false;
