@@ -16,9 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    // Botones de control
-    document.getElementById('toggle-stats').addEventListener('click', toggleStatsDisplay);
-    document.getElementById('toggle-sound').addEventListener('click', toggleSound);
+    // Botones de control - Con verificación de existencia
+    const toggleSoundButton = document.getElementById('toggle-sound');
+    const toggleStatsButton = document.getElementById('toggle-stats');
+    
+    if (toggleSoundButton && toggleStatsButton) {
+        toggleStatsButton.addEventListener('click', toggleStatsDisplay);
+        toggleSoundButton.addEventListener('click', toggleSound);
+    } else {
+        console.error('No se encontraron los botones de sonido o estadísticas');
+    }
     
     // Navegación
     document.getElementById('prev-pokemon').addEventListener('click', () => navigatePokemon(-1));
@@ -27,11 +34,12 @@ function setupEventListeners() {
     document.getElementById('next-ten').addEventListener('click', () => navigatePokemon(10));
     
     // Búsqueda
-    document.getElementById('pokemon-search').addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-            searchPokemon(e.target.value);
-        }
-    });
+    const searchInput = document.getElementById('pokemon-search');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') searchPokemon(e.target.value);
+        });
+    }
     
     // Number Pad
     document.querySelectorAll('.num-button').forEach(button => {
@@ -651,4 +659,3 @@ function translateHabitat(habitat) {
     
     return habitatTranslations[habitat] || habitat;
 }
-
