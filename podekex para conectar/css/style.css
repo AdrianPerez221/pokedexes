@@ -13,25 +13,17 @@ body {
     background: #dc0a2d;
     width: 400px;
     height: 750px;
-    border-radius: 15px;
+    border-radius: 0 15px 15px 0; /* Redondea solo el lado derecho */
     padding: 20px;
     position: relative;
     box-shadow: 
         0 0 20px rgba(0,0,0,0.5),
         inset 0 -10px 30px rgba(0,0,0,0.2);
     border: 3px solid #b30720;
-}
-
-.top-hinge {
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 20px;
-    background: #333;
-    border-radius: 5px;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 2;
+    box-shadow: 
+        -5px 0 15px -5px rgba(0,0,0,0.2),
+        inset 5px 0 5px rgba(0,0,0,0.1);
 }
 
 .screen-housing {
@@ -103,7 +95,7 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-    margin: 20px 0;
+    margin: 65px 0;
 }
 
 .number-pad {
@@ -157,7 +149,7 @@ body {
 }
 
 .d-pad-btn:hover {
-    background: #555;
+    background: #090808;
 }
 
 .d-pad-btn:active {
@@ -244,16 +236,13 @@ input:focus {
     border-radius: 3px;
 }
 
-.search-container {
-    margin: 15px 0;
-    position: relative;
-}
+
 
 .action-buttons {
     display: flex;
     gap: 15px;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 38px;
 }
 
 .action-button {
@@ -294,19 +283,26 @@ input:focus {
 }
 
 .pokedex-container {
+    position: relative; /* Añade esto para posicionar la bisagra correctamente */
     display: flex;
-    gap: 30px;
+    gap: 15px; /* Reduce el gap para que la bisagra conecte mejor */
     justify-content: center;
     align-items: flex-start;
+    padding-left: 25px;
 }
 
 .filter-panel {
     background: #dc0a2d;
     width: 300px;
     padding: 20px;
-    border-radius: 15px;
+    border-radius: 15px 0 0 15px; /* Redondea solo el lado izquierdo */
     border: 3px solid #b30720;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 2;
+    box-shadow: 
+        15px 0 15px -5px rgba(0,0,0,0.2),
+        inset -5px 0 5px rgba(0,0,0,0.1);
+    
 }
 
 .filter-screen {
@@ -514,6 +510,65 @@ input:focus {
 .move-level {
     font-weight: bold;
     margin-right: 10px;
+}
+
+/*bisagra ccentral*/
+.pokedex-hinge {
+    position: absolute;
+    left: -25px;
+    height: 40%;
+    width: 25px;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+}
+
+.hinge-top, .hinge-bottom {
+    background: #dc0a2d;
+    height: 30px;
+    border-left: 3px solid #b30720;
+    box-shadow: 
+        inset -5px 0 10px rgba(0,0,0,0.2),
+        5px 0 5px rgba(0,0,0,0.1);
+}
+
+.hinge-top {
+    border-radius: 8px 0 0 0;
+    border-bottom: 2px solid #b30720;
+}
+
+.hinge-bottom {
+    border-radius: 0 0 0 8px;
+    border-top: 2px solid #b30720;
+}
+
+.hinge-middle {
+    flex: 1;
+    background: linear-gradient(
+        to right,
+        #dc0a2d 0%,
+        #c00a28 30%,
+        #a30820 50%,
+        #c00a28 70%,
+        #dc0a2d 100%
+    );
+    border-left: 3px solid #b30720;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.hinge-screw {
+    width: 12px;
+    height: 12px;
+    background: #4a4a4a;
+    border-radius: 50%;
+    box-shadow: 
+        inset 0 -2px 3px rgba(0,0,0,0.5),
+        0 1px 1px rgba(255,255,255,0.2);
+    border: 1px solid #2d2d2d;
 }
 
 /* Estilo para la descripción del Pokémon */

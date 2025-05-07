@@ -651,3 +651,4 @@ function translateHabitat(habitat) {
     
     return habitatTranslations[habitat] || habitat;
 }
+
