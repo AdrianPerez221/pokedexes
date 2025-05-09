@@ -252,7 +252,7 @@ function updateDescription(speciesData) {
     const descriptionElement = document.querySelector('.pokemon-description');
     const categoryElement = document.getElementById('pokemon-category');
     const abilityElement = document.getElementById('pokemon-ability');
-    const habitatElement = document.getElementById('pokemon-habitat');
+    
     
     // Find Spanish flavor text if available, otherwise use English
     let flavorText = '';
@@ -282,13 +282,6 @@ function updateDescription(speciesData) {
         categoryElement.textContent = englishGenus.genus;
     } else {
         categoryElement.textContent = 'Desconocido';
-    }
-    
-    // Set habitat
-    if (speciesData.habitat) {
-        habitatElement.textContent = translateHabitat(speciesData.habitat.name);
-    } else {
-        habitatElement.textContent = 'Desconocido';
     }
     
     // Fetch abilities (need to go back to main pokemon data)
@@ -642,20 +635,4 @@ function translateStatName(stat) {
     };
     
     return statTranslations[stat] || stat;
-}
-
-function translateHabitat(habitat) {
-    const habitatTranslations = {
-        'cave': 'Caverna',
-        'forest': 'Bosque',
-        'grassland': 'Pradera',
-        'mountain': 'Montaña',
-        'rare': 'Raro',
-        'rough-terrain': 'Terreno Escabroso',
-        'sea': 'Mar',
-        'urban': 'Urbano',
-        'waters-edge': 'Orilla del Agua'
-    };
-    
-    return habitatTranslations[habitat] || habitat;
 }
