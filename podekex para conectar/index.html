@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex Clásica Completa</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="pokedex-container">
+        <!-- Panel de Filtrado -->
+        <div class="filter-panel">
+            <div class="screen-housing">
+                <div class="filter-screen">
+                    <div class="crt-effect"></div>
+                    <h2 class="filter-title">FILTRO DE TIPOS</h2>
+                    <div class="type-filters">
+                        <button class="type-button normal" data-type="normal">Normal</button>
+                        <button class="type-button fire" data-type="fire">Fuego</button>
+                        <button class="type-button water" data-type="water">Agua</button>
+                        <button class="type-button electric" data-type="electric">Eléctrico</button>
+                        <button class="type-button grass" data-type="grass">Planta</button>
+                        <button class="type-button ice" data-type="ice">Hielo</button>
+                        <button class="type-button fighting" data-type="fighting">Lucha</button>
+                        <button class="type-button poison" data-type="poison">Veneno</button>
+                        <button class="type-button ground" data-type="ground">Tierra</button>
+                        <button class="type-button flying" data-type="flying">Volador</button>
+                        <button class="type-button psychic" data-type="psychic">Psíquico</button>
+                        <button class="type-button bug" data-type="bug">Bicho</button>
+                        <button class="type-button rock" data-type="rock">Roca</button>
+                        <button class="type-button ghost" data-type="ghost">Fantasma</button>
+                        <button class="type-button dragon" data-type="dragon">Dragón</button>
+                        <button class="type-button dark" data-type="dark">Siniestro</button>
+                        <button class="type-button steel" data-type="steel">Acero</button>
+                        <button class="type-button fairy" data-type="fairy">Hada</button>
+                    </div>
+                    <div class="filter-controls">
+                        <button class="filter-button" id="apply-filter">Aplicar</button>
+                        <button class="filter-button" id="clear-filter">Limpiar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pokedex-body">
+            <div class="top-hinge"></div>
+            
+            <div class="screen-housing">
+
+                <!-- Bisagra del medio -->
+                <div class="pokedex-hinge">
+                    <div class="hinge-top"></div>
+                    <div class="hinge-middle">
+                        <div class="hinge-screw"></div>
+                        <div class="hinge-screw"></div>
+                    </div>
+                    <div class="hinge-bottom"></div>
+                </div>
+
+
+                <!-- Pantalla principal -->
+                <div class="main-screen" id="main-display">
+                    <div class="crt-effect"></div>
+                    <div class="info-display">
+                        <div class="status-bar">
+                            <span id="pokemon-id">#025</span>
+                            <span id="pokemon-name">PIKACHU</span>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" 
+                                alt="Pikachu" 
+                                id="pokemon-image"
+                                class="pokemon-image">
+                        </div>
+                        <div id="pokemon-types">
+                            <span class="type-tag electric">ELÉCTRICO</span>
+                        </div>
+                        <div style="margin-top: 10px;" id="pokemon-measures">
+                            ALT: 0.4m / PESO: 6.0kg
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pantalla de estadísticas (oculta por defecto) -->
+                <div class="main-screen" id="stats-display" style="display: none;">
+                    <div class="crt-effect"></div>
+                    <div class="stats-display">
+                        <div class="status-bar">
+                            <span id="stats-pokemon-id">#025</span>
+                            <span id="stats-pokemon-name">PIKACHU</span>
+                            <img id="stats-mini-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="Mini sprite" class="mini-sprite">
+                        </div>
+                        
+                        <div class="tabs">
+                            <button class="tab-button active" data-tab="stats-tab">
+                                <img src="iconos/insignias.png" alt="Stats" class="tab-icon">
+                            </button>
+                            <button class="tab-button" data-tab="evolution-tab">
+                                <img src="iconos/lucha.png" alt="Evolution" class="tab-icon">
+                            </button>
+                            <button class="tab-button" data-tab="moves-tab">
+                                <img src="iconos/pokemon.png" alt="Moves" class="tab-icon">
+                            </button>
+                            <button class="tab-button" data-tab="info-tab">
+                                <img src="iconos/pelota.png" alt="Info" class="tab-icon">
+                            </button>
+                        </div>
+                        
+                        <div class="tab-content active" id="stats-tab">
+                            <canvas id="stats-chart"></canvas>
+                        </div>
+                        
+                        <div class="tab-content" id="evolution-tab">
+                            <div class="evolution-chain">
+                                <!-- Cadena evolutiva se cargará dinámicamente -->
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="moves-tab">
+                            <div class="moves-container">
+                                <div class="moves-section">
+                                    <h3>Movimientos por nivel</h3>
+                                    <div class="level-moves"></div>
+                                </div>
+                                <div class="moves-section">
+                                    <h3>Movimientos TM/MT</h3>
+                                    <div class="tm-moves"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="info-tab">
+                            <div class="pokemon-description"></div>
+                            <div class="pokemon-details">
+                                <div>Categoría: <span id="pokemon-category"></span></div>
+                                <div>Habilidad: <span id="pokemon-ability"></span></div>
+                                <div>Hábitat: <span id="pokemon-habitat"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="speaker-grille">
+                <div class="speaker-line" style="top: 4px;"></div>
+                <div class="speaker-line" style="top: 9px;"></div>
+                <div class="speaker-line" style="top: 14px;"></div>
+            </div>
+
+            
+
+            <div class="control-panel">
+                <div class="number-pad">
+                    <div class="number-display" id="number-display">025</div>
+                    <button class="num-button" data-num="1">1</button>
+                    <button class="num-button" data-num="2">2</button>
+                    <button class="num-button" data-num="3">3</button>
+                    <button class="num-button" data-num="4">4</button>
+                    <button class="num-button" data-num="5">5</button>
+                    <button class="num-button" data-num="6">6</button>
+                    <button class="num-button" data-num="7">7</button>
+                    <button class="num-button" data-num="8">8</button>
+                    <button class="num-button" data-num="9">9</button>
+                    <button class="num-button" data-num="c">C</button>
+                    <button class="num-button" data-num="0">0</button>
+                    <button class="num-button" data-num="enter">E</button>
+                </div>
+                
+                <div class="d-pad-container">
+                    <div class="d-pad">
+                        <div class="d-pad-btn d-up" id="prev-pokemon"></div>
+                        <div class="d-pad-btn d-down" id="next-pokemon"></div>
+                        <div class="d-pad-btn d-left" id="prev-ten"></div>
+                        <div class="d-pad-btn d-right" id="next-ten"></div>
+                    </div>
+                    <div class="action-buttons">
+                        <div class="action-button gray-button" id="toggle-sound"></div>
+                        <div class="action-button red-button" id="toggle-stats"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
