@@ -17,15 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function setupEventListeners() {
     // Botones de control - Con verificación de existencia
-    const toggleSoundButton = document.getElementById('toggle-sound');
     const toggleStatsButton = document.getElementById('toggle-stats');
     
-    if (toggleSoundButton && toggleStatsButton) {
+    if (toggleStatsButton) {
         toggleStatsButton.addEventListener('click', toggleStatsDisplay);
-        toggleSoundButton.addEventListener('click', toggleSound);
-    } else {
-        console.error('No se encontraron los botones de sonido o estadísticas');
-    }
+    } 
     
     // Navegación
     document.getElementById('prev-pokemon').addEventListener('click', () => navigatePokemon(-1));
@@ -103,10 +99,6 @@ async function loadPokemon(id) {
         // Fetch and update additional data for stats display
         await fetchAndUpdateAdditionalData(pokemonData);
         
-        // Play cry sound if enabled
-        if (soundEnabled) {
-            playCry(pokemonData.id);
-        }
     } catch (error) {
         console.error('Error loading Pokémon:', error);
         showError('Error al cargar el Pokémon');
@@ -520,24 +512,6 @@ function toggleStatsDisplay() {
         mainDisplay.style.display = 'block';
         mainDisplay.classList.add('fadeIn');
     }
-}
-
-// Sonido
-function toggleSound() {
-    soundEnabled = !soundEnabled;
-    const soundButton = document.getElementById('toggle-sound');
-    
-    if (soundEnabled) {
-        soundButton.classList.remove('sound-off');
-        playCry(currentPokemonId);
-    } else {
-        soundButton.classList.add('sound-off');
-    }
-}
-
-function playCry(id) {
-    // No implementado - requeriría recursos de audio
-    console.log(`Playing cry for Pokémon #${id}`);
 }
 
 // Filtro por tipo
