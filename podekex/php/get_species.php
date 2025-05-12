@@ -2,13 +2,6 @@
 require 'db.php';
 header('Content-Type: application/json');
 
-$host = "localhost";
-$user = "Manu";
-$password = "Palma2006_";
-$database = "Pokedex_";
-
-// Crear conexión
-$conn = new mysqli($host, $user, $password, $database);
 
 $species_id = $_GET['id'] ?? '';
 
@@ -41,7 +34,7 @@ $species = $result->fetch_assoc();
 
 $response = [
     'id' => $species['id'],
-    'evolution_chain' => ['url' => "get_evolution.php?id=" . $species['evolution_chain_id']],
+    'evolution_chain' => ['url' => "../php/get_evolution.php?id=" . $species['evolution_chain_id']],
     'flavor_text_entries' => array_map(function($text) {
         return ['flavor_text' => $text, 'language' => ['name' => 'es']];
     }, explode(',', $species['flavor_text_entries'])),

@@ -21,7 +21,7 @@ $sql = "SELECT p.id
 // ... ejecutar consulta y devolver resultados
 
 echo json_encode(['pokemon' => array_map(function($id) {
-    return ['pokemon' => ['url' => "get_pokemon.php?id=$id"]];
+    return ['pokemon' => ['url' => "../php/get_pokemon.php?id=$id"]];
 }, $results)]);
 
 $conn->close();
