@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupEventListeners() {
     document.getElementById('prev-pokemon').addEventListener('click', () => navigatePokemon(-1));
     document.getElementById('next-pokemon').addEventListener('click', () => navigatePokemon(1));
-    document.getElementById('search-button').addEventListener('click', searchPokemon);
 }
 
 async function loadPokemon(id) {
@@ -67,21 +66,3 @@ function navigatePokemon(change) {
     loadPokemon(currentPokemonId);
 }
 
-// Búsqueda
-function searchPokemon() {
-    const input = document.getElementById('search-input').value;
-    const id = parseInt(input);
-    
-    if (!isNaN(id)) {
-        currentPokemonId = id;
-        loadPokemon(id);
-    } else {
-        fetch(`../php/get_pokemon.php?name=${encodeURIComponent(input.toLowerCase())}`)
-            .then(response => response.json())
-            .then(data => {
-                currentPokemonId = data.id;
-                updateDisplay(data);
-            })
-            .catch(error => alert('Pokémon no encontrado'));
-    }
-}
