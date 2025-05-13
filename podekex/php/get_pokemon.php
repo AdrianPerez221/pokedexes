@@ -2,41 +2,29 @@
 require 'db.php';
 header('Content-Type: application/json');
 
-// Configuración de la base de datos (cambiar por tus credenciales)
-$host = "localhost";
-$user = "Manu";
-$password = "Palma2006_";
-$database = "Pokedex_";
-
-// Crear conexión
-$conn = new mysqli($host, $user, $password, $database);
-
-// Verificar conexión
-if ($conn->connect_error) {
-    http_response_code(500);
-    die(json_encode(["error" => "Connection failed: " . $conn->connect_error]));
-}
-
-// Obtener parámetro de búsqueda
+// Verificar parámetro
 $identifier = $_GET['id'] ?? '';
 
 if (empty($identifier)) {
     http_response_code(400);
-    die(json_encode(["error" => "ID or name required"]));
+    die(json_encode(["error" => "Se requiere ID o nombre"]));
 }
 
-// Consulta SQL (ajusta nombres de tablas y columnas según tu estructura)
-$sql = "SELECT p.id, p.name, p.height, p.weight, 
-            GROUP_CONCAT(t.type_name) as types,
-            p.sprite_url,
-            GROUP_CONCAT(s.stat_name, ':', s.base_stat) as stats,
-            p.species_id
-        FROM pokemon p
-        LEFT JOIN pokemon_types pt ON p.id = pt.pokemon_id
-        LEFT JOIN types t ON pt.type_id = t.id
-        LEFT JOIN stats s ON p.id = s.pokemon_id
-        WHERE p.id = ? OR p.name = ?
-        GROUP BY p.id";
+// Consulta SQL ajustada a tu estructura
+$sql = "SELECT 
+            id,
+            nombre as name,
+            altura as height,
+            peso as weight,
+            imagen as sprite_url,
+            tipo as primary_type,
+            tipo_secundario as secondary_type,
+            hp,
+            ataque_e as attack,
+            defensa_e as defense,
+            velocidad as speed
+        FROM Pokemon 
+        WHERE id = ? OR nombre = ?";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ss", $identifier, $identifier);
@@ -45,12 +33,27 @@ $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
     http_response_code(404);
-    die(json_encode(["error" => "Pokémon not found"]));
+    die(json_encode(["error" => "Pokémon no encontrado"]));
 }
 
 $pokemon = $result->fetch_assoc();
 
-// Formatear la respuesta similar a la PokeAPI
+// Procesar tipos
+$types = [];
+$types[] = ['type' => ['name' => $pokemon['primary_type']]];
+if (!empty($pokemon['secondary_type'])) {
+    $types[] = ['type' => ['name' => $pokemon['secondary_type']]];
+}
+
+// Procesar stats
+$stats = [
+    ['stat' => ['name' => 'hp'], 'base_stat' => $pokemon['hp']],
+    ['stat' => ['name' => 'attack'], 'base_stat' => $pokemon['attack']],
+    ['stat' => ['name' => 'defense'], 'base_stat' => $pokemon['defense']],
+    ['stat' => ['name' => 'speed'], 'base_stat' => $pokemon['speed']]
+];
+
+// Formatear respuesta
 $response = [
     'id' => $pokemon['id'],
     'name' => $pokemon['name'],
@@ -59,14 +62,8 @@ $response = [
     'sprites' => [
         'front_default' => $pokemon['sprite_url']
     ],
-    'types' => array_map(function($type) {
-        return ['type' => ['name' => $type]];
-    }, explode(',', $pokemon['types'])),
-    'stats' => array_map(function($stat) {
-        list($name, $base) = explode(':', $stat);
-        return ['stat' => ['name' => $name], 'base_stat' => $base];
-    }, explode(',', $pokemon['stats'])),
-    'species' => ['url' => "get_species.php?id=" . $pokemon['species_id']]
+    'types' => $types,
+    'stats' => $stats
 ];
 
 echo json_encode($response);
