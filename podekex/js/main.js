@@ -181,14 +181,14 @@ async function fetchAndUpdateAdditionalData(dbPokemon) {
     document.getElementById('stats-pokemon-name').textContent = dbPokemon.nombre.toUpperCase();
     document.getElementById('stats-mini-sprite').src = dbPokemon.imagen || 'placeholder.png';
     
+    // Update stats chart using DB data
+    updateStatsChartFromDB(dbPokemon);
+    
     // For the rest of the data, fetch from PokeAPI
     try {
         const apiPokemon = await fetchPokemonData(dbPokemon.id);
         
         if (apiPokemon) {
-            // Update stats chart
-            updateStatsChart(apiPokemon.stats);
-            
             // Fetch and update species data
             try {
                 const speciesResponse = await fetch(apiPokemon.species.url);
@@ -212,7 +212,7 @@ async function fetchAndUpdateAdditionalData(dbPokemon) {
     }
 }
 
-function updateStatsChart(stats) {
+function updateStatsChartFromDB(dbPokemon) {
     const ctx = document.getElementById('stats-chart').getContext('2d');
     
     // Destroy previous chart if exists
@@ -220,8 +220,16 @@ function updateStatsChart(stats) {
         statsChart.destroy();
     }
     
-    const labels = stats.map(stat => translateStatName(stat.stat.name));
-    const values = stats.map(stat => stat.base_stat);
+    // Preparar los datos de estadísticas desde la base de datos
+    const labels = ['PS', 'Ataque', 'Defensa', 'At. Esp.', 'Def. Esp.', 'Velocidad'];
+    const values = [
+        parseInt(dbPokemon.hp) || 0, 
+        parseInt(dbPokemon.ataque_f) || 0, 
+        parseInt(dbPokemon.defensa_f) || 0, 
+        parseInt(dbPokemon.ataque_e) || 0, 
+        parseInt(dbPokemon.defensa_e) || 0, 
+        parseInt(dbPokemon.velocidad) || 0
+    ];
     
     // Create new chart
     statsChart = new Chart(ctx, {
