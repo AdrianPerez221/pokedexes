@@ -1,10 +1,9 @@
 // Variables globales
-let currentPokemonId = 1; // Inicialmente Pikachu
+let currentPokemonId = 1;
 let statsChart = null;
 let filteredPokemon = [];
 let isFiltering = false;
 let currentFilterType = '';
-let soundEnabled = true;
 let inputBuffer = '';
 const MAX_POKEMON = 1025;
 
@@ -28,14 +27,6 @@ function setupEventListeners() {
     document.getElementById('next-pokemon').addEventListener('click', () => navigatePokemon(1));
     document.getElementById('prev-ten').addEventListener('click', () => navigatePokemon(-10));
     document.getElementById('next-ten').addEventListener('click', () => navigatePokemon(10));
-    
-    // Búsqueda
-    const searchInput = document.getElementById('pokemon-search');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') searchPokemon(e.target.value);
-        });
-    }
     
     // Number Pad
     document.querySelectorAll('.num-button').forEach(button => {
@@ -82,26 +73,57 @@ async function loadPokemon(id) {
         inputBuffer = '';
         updateNumberDisplay('');
         
-        // Fetch Pokémon data
-        const pokemonData = await fetchPokemonData(id);
+        // Asegúrate de que id sea un número
+        id = parseInt(id);
+        if (isNaN(id) || id < 1) {
+            id = 1;
+        }
         
-        if (!pokemonData) {
-            showError('Pokémon no encontrado');
+        // Fetch Pokémon data from PHP backend (MySQL database)
+        const dbPokemonData = await fetchPokemonFromDB(id);
+        
+        if (!dbPokemonData) {
+            showError('Pokémon no encontrado en la base de datos');
             return;
         }
         
-        // Update current ID
-        currentPokemonId = pokemonData.id;
+        // Update current ID - asegurándonos que sea un número
+        currentPokemonId = parseInt(dbPokemonData.id);
         
-        // Update main display
-        updateMainDisplay(pokemonData);
+        // Update main display with DB data
+        updateMainDisplayFromDB(dbPokemonData);
         
-        // Fetch and update additional data for stats display
-        await fetchAndUpdateAdditionalData(pokemonData);
+        // Fetch and update additional data for stats display from PokeAPI
+        await fetchAndUpdateAdditionalData(dbPokemonData);
         
     } catch (error) {
         console.error('Error loading Pokémon:', error);
         showError('Error al cargar el Pokémon');
+    }
+}
+
+async function fetchPokemonFromDB(id) {
+    try {
+        const response = await fetch(`../php/db.php?id=${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al conectar con la base de datos');
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Error from DB:', data.error);
+            return null;
+        }
+        
+        // Asegúrate de que el ID sea un número
+        data.id = parseInt(data.id);
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching Pokémon from DB:', error);
+        return null;
     }
 }
 
@@ -118,57 +140,76 @@ async function fetchPokemonData(idOrName) {
     }
 }
 
-function updateMainDisplay(pokemon) {
+function updateMainDisplayFromDB(dbPokemon) {
     // Update name and ID
-    document.getElementById('pokemon-name').textContent = pokemon.name.toUpperCase();
-    document.getElementById('pokemon-id').textContent = `#${pokemon.id.toString().padStart(3, '0')}`;
+    document.getElementById('pokemon-name').textContent = dbPokemon.nombre.toUpperCase();
+    document.getElementById('pokemon-id').textContent = `#${dbPokemon.id.toString().padStart(3, '0')}`;
     
-    // Update image
+    // Update image from database
     const pokemonImage = document.getElementById('pokemon-image');
-    pokemonImage.src = pokemon.sprites.front_default || 'placeholder.png';
-    pokemonImage.alt = pokemon.name;
+    pokemonImage.src = dbPokemon.imagen || 'placeholder.png';
+    pokemonImage.alt = dbPokemon.nombre;
     
-    // Update types
+    // Update types from database
     const typesContainer = document.getElementById('pokemon-types');
     typesContainer.innerHTML = '';
-    pokemon.types.forEach(typeInfo => {
+    
+    // Procesar tipo principal
+    if (dbPokemon.tipo) {
         const typeElement = document.createElement('span');
-        typeElement.classList.add('type-tag', typeInfo.type.name);
-        typeElement.textContent = translateType(typeInfo.type.name).toUpperCase();
+        typeElement.classList.add('type-tag', dbPokemon.tipo.toLowerCase());
+        typeElement.textContent = translateType(dbPokemon.tipo).toUpperCase();
         typesContainer.appendChild(typeElement);
-    });
-    
-    // Update measures
-    document.getElementById('pokemon-measures').textContent = 
-        `ALT: ${(pokemon.height / 10).toFixed(1)}m / PESO: ${(pokemon.weight / 10).toFixed(1)}kg`;
-}
-
-async function fetchAndUpdateAdditionalData(pokemon) {
-    // Update stats mini display info
-    document.getElementById('stats-pokemon-id').textContent = `#${pokemon.id.toString().padStart(3, '0')}`;
-    document.getElementById('stats-pokemon-name').textContent = pokemon.name.toUpperCase();
-    document.getElementById('stats-mini-sprite').src = pokemon.sprites.front_default || 'placeholder.png';
-    
-    // Update stats chart
-    updateStatsChart(pokemon.stats);
-    
-    // Fetch and update species data
-    try {
-        const speciesResponse = await fetch(pokemon.species.url);
-        if (!speciesResponse.ok) throw new Error('No se pudo cargar los datos de la especie');
-        const speciesData = await speciesResponse.json();
-        
-        // Update description
-        updateDescription(speciesData);
-        
-        // Fetch and update evolution chain
-        await fetchAndUpdateEvolutionChain(speciesData);
-    } catch (error) {
-        console.error('Error fetching species data:', error);
     }
     
-    // Update moves
-    updateMoves(pokemon.moves);
+    // Procesar tipo secundario si existe
+    if (dbPokemon.tipo_secundario) {
+        const secondaryTypeElement = document.createElement('span');
+        secondaryTypeElement.classList.add('type-tag', dbPokemon.tipo_secundario.toLowerCase());
+        secondaryTypeElement.textContent = translateType(dbPokemon.tipo_secundario).toUpperCase();
+        typesContainer.appendChild(secondaryTypeElement);
+    }
+    
+    // Update measures (altura and peso from database)
+    document.getElementById('pokemon-measures').textContent = 
+        `ALT: ${(dbPokemon.altura)}m / PESO: ${(dbPokemon.peso)}kg`;
+}
+
+async function fetchAndUpdateAdditionalData(dbPokemon) {
+    // Update stats mini display info with DB data
+    document.getElementById('stats-pokemon-id').textContent = `#${dbPokemon.id.toString().padStart(3, '0')}`;
+    document.getElementById('stats-pokemon-name').textContent = dbPokemon.nombre.toUpperCase();
+    document.getElementById('stats-mini-sprite').src = dbPokemon.imagen || 'placeholder.png';
+    
+    // For the rest of the data, fetch from PokeAPI
+    try {
+        const apiPokemon = await fetchPokemonData(dbPokemon.id);
+        
+        if (apiPokemon) {
+            // Update stats chart
+            updateStatsChart(apiPokemon.stats);
+            
+            // Fetch and update species data
+            try {
+                const speciesResponse = await fetch(apiPokemon.species.url);
+                if (!speciesResponse.ok) throw new Error('No se pudo cargar los datos de la especie');
+                const speciesData = await speciesResponse.json();
+                
+                // Update description
+                updateDescription(speciesData);
+                
+                // Fetch and update evolution chain
+                await fetchAndUpdateEvolutionChain(speciesData);
+            } catch (error) {
+                console.error('Error fetching species data:', error);
+            }
+            
+            // Update moves
+            updateMoves(apiPokemon.moves);
+        }
+    } catch (error) {
+        console.error('Error fetching additional data from PokeAPI:', error);
+    }
 }
 
 function updateStatsChart(stats) {
@@ -435,6 +476,12 @@ function updateMoves(moves) {
 
 // Navegación
 function navigatePokemon(change) {
+    // Asegúrate de que currentPokemonId sea un número
+    currentPokemonId = parseInt(currentPokemonId);
+    
+    // Asegúrate de que change sea un número
+    change = parseInt(change);
+    
     let newId = currentPokemonId + change;
     
     // Handle wrap-around
@@ -454,21 +501,6 @@ function navigatePokemon(change) {
     }
     
     loadPokemon(newId);
-}
-
-// Funciones de búsqueda
-function searchPokemon(query) {
-    if (!query) return;
-    
-    // Try to parse as number first
-    const idQuery = parseInt(query);
-    if (!isNaN(idQuery) && idQuery > 0 && idQuery <= MAX_POKEMON) {
-        loadPokemon(idQuery);
-        return;
-    }
-    
-    // Otherwise try as name
-    loadPokemon(query.toLowerCase());
 }
 
 // Number Pad
@@ -595,7 +627,7 @@ function translateType(type) {
         'fairy': 'Hada'
     };
     
-    return typeTranslations[type] || type;
+    return typeTranslations[type.toLowerCase()] || type;
 }
 
 function translateStatName(stat) {
