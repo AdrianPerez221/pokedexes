@@ -6,7 +6,6 @@ let isFiltering = false;
 let currentFilterType = '';
 let inputBuffer = '';
 const MAX_POKEMON = 1025;
-let isPowerOn = true; // Estado inicial de encendido
 
 // Elementos DOM
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,15 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupEventListeners() {
     // Botones de control - Con verificación de existencia
     const toggleStatsButton = document.getElementById('toggle-stats');
-    const togglePowerButton = document.getElementById('toggle-power');
     
     if (toggleStatsButton) {
         toggleStatsButton.addEventListener('click', toggleStatsDisplay);
     } 
-    
-    if (togglePowerButton) {
-        togglePowerButton.addEventListener('click', togglePower);
-    }
     
     // Navegación
     document.getElementById('prev-pokemon').addEventListener('click', () => navigatePokemon(-1));
@@ -72,56 +66,6 @@ function setupEventListeners() {
     });
 }
 
-// Función para controlar el encendido/apagado de la Pokédex
-function togglePower() {
-    const pokedexContainer = document.querySelector('.pokedex-container');
-    const mainScreen = document.getElementById('main-display');
-    const statsScreen = document.getElementById('stats-display');
-    const filterScreen = document.querySelector('.filter-screen');
-    
-    isPowerOn = !isPowerOn;
-    
-    if (isPowerOn) {
-        // Encender la Pokédex
-        pokedexContainer.classList.remove('pokedex-off');
-        
-        // Animación de encendido para las pantallas
-        mainScreen.classList.add('screen-turn-on');
-        if (filterScreen) filterScreen.classList.add('screen-turn-on');
-        
-        // Restaurar la opacidad de los elementos después de la animación
-        setTimeout(() => {
-            const displays = document.querySelectorAll('.info-display, .stats-display, .filter-title, .type-filters, .filter-controls');
-            displays.forEach(display => {
-                display.style.transition = 'opacity 0.5s ease';
-                display.style.opacity = '1';
-            });
-            
-            // Restaurar luz de la Pokédex
-            const lights = document.querySelectorAll('.light');
-            lights.forEach(light => {
-                light.style.opacity = '';
-            });
-        }, 800);
-        
-        // Reproducir sonido de encendido si está disponible
-        const powerOnSound = new Audio('ruta/al/sonido-encendido.mp3');
-        powerOnSound.volume = 0.5;
-        powerOnSound.play().catch(e => console.log('Audio no disponible'));
-    } else {
-        // Apagar la Pokédex
-        pokedexContainer.classList.add('pokedex-off');
-        
-        // Remover clase de animación de encendido
-        mainScreen.classList.remove('screen-turn-on');
-        if (filterScreen) filterScreen.classList.remove('screen-turn-on');
-        
-        // Reproducir sonido de apagado si está disponible
-        const powerOffSound = new Audio('ruta/al/sonido-apagado.mp3');
-        powerOffSound.volume = 0.5;
-        powerOffSound.play().catch(e => console.log('Audio no disponible'));
-    }
-}
 // Funciones de navegación y carga de Pokémon
 async function loadPokemon(id) {
     try {
@@ -237,14 +181,14 @@ async function fetchAndUpdateAdditionalData(dbPokemon) {
     document.getElementById('stats-pokemon-name').textContent = dbPokemon.nombre.toUpperCase();
     document.getElementById('stats-mini-sprite').src = dbPokemon.imagen || 'placeholder.png';
     
-    // Update stats chart using DB data
-    updateStatsChartFromDB(dbPokemon);
-    
     // For the rest of the data, fetch from PokeAPI
     try {
         const apiPokemon = await fetchPokemonData(dbPokemon.id);
         
         if (apiPokemon) {
+            // Update stats chart
+            updateStatsChart(apiPokemon.stats);
+            
             // Fetch and update species data
             try {
                 const speciesResponse = await fetch(apiPokemon.species.url);
@@ -268,7 +212,7 @@ async function fetchAndUpdateAdditionalData(dbPokemon) {
     }
 }
 
-function updateStatsChartFromDB(dbPokemon) {
+function updateStatsChart(stats) {
     const ctx = document.getElementById('stats-chart').getContext('2d');
     
     // Destroy previous chart if exists
@@ -276,16 +220,8 @@ function updateStatsChartFromDB(dbPokemon) {
         statsChart.destroy();
     }
     
-    // Preparar los datos de estadísticas desde la base de datos
-    const labels = ['PS', 'Ataque', 'Defensa', 'At. Esp.', 'Def. Esp.', 'Velocidad'];
-    const values = [
-        parseInt(dbPokemon.hp) || 0, 
-        parseInt(dbPokemon.ataque_f) || 0, 
-        parseInt(dbPokemon.defensa_f) || 0, 
-        parseInt(dbPokemon.ataque_e) || 0, 
-        parseInt(dbPokemon.defensa_e) || 0, 
-        parseInt(dbPokemon.velocidad) || 0
-    ];
+    const labels = stats.map(stat => translateStatName(stat.stat.name));
+    const values = stats.map(stat => stat.base_stat);
     
     // Create new chart
     statsChart = new Chart(ctx, {
@@ -539,11 +475,7 @@ function updateMoves(moves) {
 }
 
 // Navegación
-// Modificar funciones existentes para comprobar si la Pokédex está encendida
 function navigatePokemon(change) {
-    // Si la Pokédex está apagada, no hacer nada
-    if (!isPowerOn) return;
-    
     // Asegúrate de que currentPokemonId sea un número
     currentPokemonId = parseInt(currentPokemonId);
     
@@ -572,11 +504,7 @@ function navigatePokemon(change) {
 }
 
 // Number Pad
-// Number Pad
 function handleNumberPad(e) {
-    // Si la Pokédex está apagada, no hacer nada
-    if (!isPowerOn) return;
-    
     const value = e.target.dataset.num;
     
     if (value === 'c') {
@@ -603,11 +531,7 @@ function updateNumberDisplay(value) {
 }
 
 // Cambio entre pantallas
-// Cambio entre pantallas
 function toggleStatsDisplay() {
-    // Si la Pokédex está apagada, no hacer nada
-    if (!isPowerOn) return;
-    
     const mainDisplay = document.getElementById('main-display');
     const statsDisplay = document.getElementById('stats-display');
     
@@ -623,11 +547,7 @@ function toggleStatsDisplay() {
 }
 
 // Filtro por tipo
-// Filtro por tipo
 async function applyFilter() {
-    // Si la Pokédex está apagada, no hacer nada
-    if (!isPowerOn) return;
-    
     if (!currentFilterType) {
         clearFilter();
         return;
@@ -657,9 +577,6 @@ async function applyFilter() {
 }
 
 function clearFilter() {
-    // Si la Pokédex está apagada, no hacer nada
-    if (!isPowerOn) return;
-    
     // Reset filter variables
     isFiltering = false;
     filteredPokemon = [];
@@ -670,19 +587,6 @@ function clearFilter() {
     
     // Stay on current Pokémon
     loadPokemon(currentPokemonId);
-}
-
-function translateStatName(stat) {
-    const statTranslations = {
-        'hp': 'PS',
-        'attack': 'Ataque',
-        'defense': 'Defensa',
-        'special-attack': 'At. Esp.',
-        'special-defense': 'Def. Esp.',
-        'speed': 'Velocidad'
-    };
-    
-    return statTranslations[stat] || stat;
 }
 
 // Funciones auxiliares

@@ -287,52 +287,6 @@ input:focus {
     border-color: #666;
 }
 
-.power-icon {
-    width: 30px;
-    height: 30px;
-    margin: auto;
-    filter: invert(1);
-    transition: all 0.3s ease;
-}
-
-/* Estado de apagado */
-.pokedex-off .main-screen,
-.pokedex-off .filter-screen {
-    background: #333 !important;
-}
-
-.pokedex-off .info-display,
-.pokedex-off .stats-display,
-.pokedex-off .filter-title,
-.pokedex-off .type-filters,
-.pokedex-off .filter-controls {
-    opacity: 0;
-}
-
-.pokedex-off .crt-effect::after {
-    animation: none;
-}
-
-.pokedex-off .light {
-    animation: none !important;
-    opacity: 0.2 !important;
-}
-
-.pokedex-off .power-icon {
-    filter: invert(0.5);
-}
-
-/* Animación de encendido */
-@keyframes turnOn {
-    0% { background: #333; }
-    50% { background: #5b751f; }
-    100% { background: #8bac0f; }
-}
-
-.screen-turn-on {
-    animation: turnOn 0.8s ease-in-out forwards;
-}
-
 .red-button {
     background: #c00927;
     border-color: #b30720;
