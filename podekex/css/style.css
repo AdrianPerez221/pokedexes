@@ -206,7 +206,6 @@ body::before {
     border: 1px solid #222;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     margin-right: 5px;
-    margin-top: 20px;
 }
 
 .number-display {
@@ -244,15 +243,14 @@ input:focus {
 
 .pokemon-image {
     image-rendering: pixelated;
-    width: 100px;  /* Fixed width */
-    height: 110px; /* Fixed height to maintain aspect ratio */
+    width: 96px;
     margin: 0 auto;
     display: block;
     background: #0a280a;
     padding: 5px;
     border-radius: 3px;
-    object-fit: contain;
 }
+
 
 
 .action-buttons {
@@ -300,9 +298,9 @@ input:focus {
 }
 
 .pokedex-container {
-    position: relative; 
+    position: relative; /* Añade esto para posicionar la bisagra correctamente */
     display: flex;
-    gap: 15px; 
+    gap: 15px; /* Reduce el gap para que la bisagra conecte mejor */
     justify-content: center;
     align-items: flex-start;
     padding-left: 25px;
