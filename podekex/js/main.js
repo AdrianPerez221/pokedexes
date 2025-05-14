@@ -173,6 +173,14 @@ function updateMainDisplayFromDB(dbPokemon) {
     // Update measures (altura and peso from database)
     document.getElementById('pokemon-measures').textContent = 
         `ALT: ${(dbPokemon.altura)}m / PESO: ${(dbPokemon.peso)}kg`;
+    
+    // Actualizar la descripción desde la base de datos
+    const descriptionElement = document.querySelector('.pokemon-description');
+    if (descriptionElement && dbPokemon.descripcion) {
+        descriptionElement.textContent = dbPokemon.descripcion;
+    } else if (descriptionElement) {
+        descriptionElement.textContent = 'No hay descripción disponible.';
+    }
 }
 
 async function fetchAndUpdateAdditionalData(dbPokemon) {
@@ -181,22 +189,22 @@ async function fetchAndUpdateAdditionalData(dbPokemon) {
     document.getElementById('stats-pokemon-name').textContent = dbPokemon.nombre.toUpperCase();
     document.getElementById('stats-mini-sprite').src = dbPokemon.imagen || 'placeholder.png';
     
-    // For the rest of the data, fetch from PokeAPI
+    // Update stats chart using DB data
+    updateStatsChartFromDB(dbPokemon);
+    
+    // Para el resto de datos, fetch desde PokeAPI
     try {
         const apiPokemon = await fetchPokemonData(dbPokemon.id);
         
         if (apiPokemon) {
-            // Update stats chart
-            updateStatsChart(apiPokemon.stats);
-            
             // Fetch and update species data
             try {
                 const speciesResponse = await fetch(apiPokemon.species.url);
                 if (!speciesResponse.ok) throw new Error('No se pudo cargar los datos de la especie');
                 const speciesData = await speciesResponse.json();
                 
-                // Update description
-                updateDescription(speciesData);
+                
+                updateCategoryAndAbility(speciesData);
                 
                 // Fetch and update evolution chain
                 await fetchAndUpdateEvolutionChain(speciesData);
@@ -212,7 +220,35 @@ async function fetchAndUpdateAdditionalData(dbPokemon) {
     }
 }
 
-function updateStatsChart(stats) {
+function updateCategoryAndAbility(speciesData) {
+    const categoryElement = document.getElementById('pokemon-category');
+    const abilityElement = document.getElementById('pokemon-ability');
+    
+    // Set category (genus)
+    const spanishGenus = speciesData.genera.find(genus => genus.language.name === 'es');
+    const englishGenus = speciesData.genera.find(genus => genus.language.name === 'en');
+    
+    if (spanishGenus) {
+        categoryElement.textContent = spanishGenus.genus;
+    } else if (englishGenus) {
+        categoryElement.textContent = englishGenus.genus;
+    } else {
+        categoryElement.textContent = 'Desconocido';
+    }
+    
+    // Fetch abilities (need to go back to main pokemon data)
+    fetchPokemonData(speciesData.id).then(pokemon => {
+        if (pokemon && pokemon.abilities && pokemon.abilities.length > 0) {
+            abilityElement.textContent = pokemon.abilities.map(ability => 
+                capitalizeFirstLetter(ability.ability.name.replace('-', ' '))
+            ).join(', ');
+        } else {
+            abilityElement.textContent = 'Desconocido';
+        }
+    });
+}
+
+function updateStatsChartFromDB(dbPokemon) {
     const ctx = document.getElementById('stats-chart').getContext('2d');
     
     // Destroy previous chart if exists
@@ -220,8 +256,16 @@ function updateStatsChart(stats) {
         statsChart.destroy();
     }
     
-    const labels = stats.map(stat => translateStatName(stat.stat.name));
-    const values = stats.map(stat => stat.base_stat);
+    // Preparar los datos de estadísticas desde la base de datos
+    const labels = ['PS', 'Ataque', 'Defensa', 'At. Esp.', 'Def. Esp.', 'Velocidad'];
+    const values = [
+        parseInt(dbPokemon.hp) || 0, 
+        parseInt(dbPokemon.ataque_f) || 0, 
+        parseInt(dbPokemon.defensa_f) || 0, 
+        parseInt(dbPokemon.ataque_e) || 0, 
+        parseInt(dbPokemon.defensa_e) || 0, 
+        parseInt(dbPokemon.velocidad) || 0
+    ];
     
     // Create new chart
     statsChart = new Chart(ctx, {
@@ -277,54 +321,6 @@ function updateStatsChart(stats) {
                     }
                 }
             }
-        }
-    });
-}
-
-function updateDescription(speciesData) {
-    const descriptionElement = document.querySelector('.pokemon-description');
-    const categoryElement = document.getElementById('pokemon-category');
-    const abilityElement = document.getElementById('pokemon-ability');
-    
-    
-    // Find Spanish flavor text if available, otherwise use English
-    let flavorText = '';
-    const spanishEntry = speciesData.flavor_text_entries.find(entry => entry.language.name === 'es');
-    const englishEntry = speciesData.flavor_text_entries.find(entry => entry.language.name === 'en');
-    
-    if (spanishEntry) {
-        flavorText = spanishEntry.flavor_text;
-    } else if (englishEntry) {
-        flavorText = englishEntry.flavor_text;
-    } else if (speciesData.flavor_text_entries.length > 0) {
-        flavorText = speciesData.flavor_text_entries[0].flavor_text;
-    }
-    
-    // Clean up flavor text (replace line breaks and duplicate spaces)
-    flavorText = flavorText.replace(/\f/g, ' ').replace(/\n/g, ' ').replace(/\s+/g, ' ');
-    
-    descriptionElement.textContent = flavorText;
-    
-    // Set category (genus)
-    const spanishGenus = speciesData.genera.find(genus => genus.language.name === 'es');
-    const englishGenus = speciesData.genera.find(genus => genus.language.name === 'en');
-    
-    if (spanishGenus) {
-        categoryElement.textContent = spanishGenus.genus;
-    } else if (englishGenus) {
-        categoryElement.textContent = englishGenus.genus;
-    } else {
-        categoryElement.textContent = 'Desconocido';
-    }
-    
-    // Fetch abilities (need to go back to main pokemon data)
-    fetchPokemonData(speciesData.id).then(pokemon => {
-        if (pokemon && pokemon.abilities && pokemon.abilities.length > 0) {
-            abilityElement.textContent = pokemon.abilities.map(ability => 
-                capitalizeFirstLetter(ability.ability.name.replace('-', ' '))
-            ).join(', ');
-        } else {
-            abilityElement.textContent = 'Desconocido';
         }
     });
 }

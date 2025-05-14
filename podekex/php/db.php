@@ -4,7 +4,7 @@ $user = "Manu";
 $password = "Palma2006_";
 $database = "Pokedex_";
 
-// Conexión a la base de datos
+
 $conn = new mysqli($host, $user, $password, $database);
 if ($conn->connect_error) {
     header('Content-Type: application/json');
@@ -12,14 +12,13 @@ if ($conn->connect_error) {
     exit;
 }
 
-// Obtener ID del Pokémon solicitado
+
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Consulta para obtener datos del Pokémon
-$sql = "SELECT imagen, tipo, tipo_secundario, nombre, id, altura, peso FROM Pokemon WHERE id = $id";
+
+$sql = "SELECT imagen, tipo, tipo_secundario, nombre, id, descripcion, altura, peso, hp, ataque_f, ataque_e, defensa_f, defensa_e, velocidad FROM Pokemon WHERE id = $id";
 $result = $conn->query($sql);
 
-// Devolver resultados
 header('Content-Type: application/json');
 
 if ($result && $row = $result->fetch_assoc()) {
@@ -31,6 +30,13 @@ if ($result && $row = $result->fetch_assoc()) {
         "imagen" => $row['imagen'],
         "altura" => $row['altura'],
         "peso" => $row['peso'],
+        "hp" => $row['hp'],
+        "ataque_f" => $row['ataque_f'],
+        "ataque_e" => $row['ataque_e'],
+        "defensa_f" => $row['defensa_f'],
+        "defensa_e" => $row['defensa_e'],
+        "velocidad" => $row['velocidad'],
+        "descripcion" => $row['descripcion'],
     ]);
 } else {
     echo json_encode(["error" => "No se encontró el Pokemon"]);
