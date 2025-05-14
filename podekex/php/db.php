@@ -16,7 +16,7 @@ if ($conn->connect_error) {
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 
-$sql = "SELECT imagen, tipo, tipo_secundario, nombre, id, altura, peso, hp, ataque_f, ataque_e, defensa_f, defensa_e, velocidad FROM Pokemon WHERE id = $id";
+$sql = "SELECT imagen, tipo, tipo_secundario, nombre, id, descripcion, altura, peso, hp, ataque_f, ataque_e, defensa_f, defensa_e, velocidad FROM Pokemon WHERE id = $id";
 $result = $conn->query($sql);
 
 header('Content-Type: application/json');
@@ -35,7 +35,8 @@ if ($result && $row = $result->fetch_assoc()) {
         "ataque_e" => $row['ataque_e'],
         "defensa_f" => $row['defensa_f'],
         "defensa_e" => $row['defensa_e'],
-        "velocidad" => $row['velocidad']
+        "velocidad" => $row['velocidad'],
+        "descripcion" => $row['descripcion'],
     ]);
 } else {
     echo json_encode(["error" => "No se encontró el Pokemon"]);
